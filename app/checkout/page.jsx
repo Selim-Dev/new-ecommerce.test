@@ -1,26 +1,33 @@
-"use client";
+import { Suspense, useEffect, useState } from 'react';
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./_components/CheckoutForm";
-import { useSearchParams } from "next/navigation";
 
-// Make sure to call `loadStripe` outside of a component’s render to avoid
-// recreating the `Stripe` object on every render.
-const apiKey = process.env.NEXT_PUBLIC_Publishable_key || ""
+const apiKey = process.env.NEXT_PUBLIC_Publishable_key || "";
 const stripePromise = loadStripe(apiKey);
 
-function Checkout() {
-  const searchParams = useSearchParams();
-  const options = {
-    mode: "payment",
-    currency: "usd",
-    amount: searchParams.get("amount") * 100
-  };
+function CheckoutPage() {
+  const [amount, setAmount] = useState(null);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const parsedAmount = Number(searchParams.get("amount"));
+    if (parsedAmount > 0) {
+      setAmount(parsedAmount);
+    }
+  }, []);
+
+  if (!amount) {
+    return <div>Invalid amount provided. Please specify a valid amount in the URL query string.</div>;
+  }
+
   return (
-    <Elements stripe={stripePromise} options={options}>
-      <CheckoutForm amount={Number(searchParams.get("amount"))} />
-    </Elements>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Elements stripe={stripePromise} options={{ mode: "payment", currency: "usd", amount: amount * 100 }}>
+        <CheckoutForm amount={amount} />
+      </Elements>
+    </Suspense>
   );
 }
 
-export default Checkout;
+export default CheckoutPage;
