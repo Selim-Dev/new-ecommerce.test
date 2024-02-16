@@ -6,7 +6,8 @@ import { useSearchParams } from "next/navigation";
 
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_Publishable_key);
+const apiKey = process.env.NEXT_PUBLIC_Publishable_key || ""
+const stripePromise = loadStripe(apiKey);
 
 function Checkout() {
   const searchParams = useSearchParams();
